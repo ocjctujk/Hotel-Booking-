@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import { AuthService } from './auth.service';
@@ -9,6 +10,7 @@ import { AuthService } from './auth.service';
   styleUrls: ['./auth.page.scss'],
 })
 export class AuthPage implements OnInit {
+  isLogin = true;
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -16,6 +18,10 @@ export class AuthPage implements OnInit {
   ) {}
 
   ngOnInit() {}
+
+  toggle() {
+    this.isLogin = !this.isLogin;
+  }
 
   onLogin() {
     this.authService.login();
@@ -28,5 +34,14 @@ export class AuthPage implements OnInit {
       this.loadingCtrl.dismiss();
       this.router.navigate(['places/tabs/discover']);
     }, 3000);
+  }
+
+  onSignUp(){
+    // console.log(this.form.valid);
+  }
+
+  onSubmit(form: NgForm){
+    console.log(form.valid);
+    console.log(form.value);
   }
 }

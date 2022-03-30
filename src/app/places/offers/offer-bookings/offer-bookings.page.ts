@@ -17,7 +17,7 @@ export class OfferBookingsPage implements OnInit {
     this.route.paramMap.subscribe(data=>{
       this.id = data.get('offerId');
       this.place = this.placesService.getPlace(this.id);
-      console.log(this.id);
+ 
     })
 
   }

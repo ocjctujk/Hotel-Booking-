@@ -1,11 +1,74 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Authenticate</ion-title>
+    <ion-title>{{ isLogin ? 'Login' : 'Sign up' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-button (click)="onLogin()">
-    Login
-  </ion-button>
+  <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+    <ion-grid>
+      <ion-row>
+        <ion-col size-md="6" offset-md="3">
+          <ion-list>
+            <ion-item>
+              <ion-label position="floating">Email</ion-label>
+              <ion-input
+                type="email"
+                ngModel
+                name="email"
+                required
+                email
+                #email="ngModel"
+              ></ion-input>
+            </ion-item>
+            <ion-item *ngIf="!email.valid && email.touched" lines="none">
+              <ion-text color="danger"
+                >Should be a valid email address</ion-text
+              >
+            </ion-item>
+            <ion-item>
+              <ion-label position="floating">Password</ion-label>
+              <ion-input
+                type="password"
+                ngModel
+                name="password"
+                required
+                minlength="6"
+                #password="ngModel"
+              ></ion-input>
+            </ion-item>
+            <ion-item *ngIf="!password.valid && password.touched" lines="none">
+              <ion-text color="danger"
+                >Password minimum length should be 6</ion-text
+              >
+            </ion-item>
+          </ion-list>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size-md="6" offset-md="3">
+          <ion-button
+            type="button"
+            (click)="toggle()"
+            fill="clear"
+            expand="block"
+          >
+            Switch to {{ isLogin ? 'Sign up' : 'Login' }}
+          </ion-button>
+
+          <ion-button *ngIf="isLogin" (click)="onLogin()" expand="block">
+            Login
+          </ion-button>
+          <ion-button
+            [disabled]="!f.valid"
+            type="submit"
+            *ngIf="!isLogin"
+            expand="block"
+          >
+            Sign up
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
 </ion-content>

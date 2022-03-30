@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { SegmentChangeEventDetail } from '@ionic/angular';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { LoadingController, SegmentChangeEventDetail } from '@ionic/angular';
+import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/auth/auth.service';
 import { Place } from 'src/app/shared/place.model';
 import { PlacesService } from '../places.service';
 
@@ -8,21 +10,38 @@ import { PlacesService } from '../places.service';
   templateUrl: './discover.page.html',
   styleUrls: ['./discover.page.scss'],
 })
-export class DiscoverPage implements OnInit {
-
-  places : Place[];
-
-  constructor(private placesService : PlacesService) { }
+export class DiscoverPage implements OnInit, OnDestroy {
+  places: Place[] = [];
+  filteredPlaces: Place[] = [];
+  placesSubscription: Subscription;
+  constructor(
+    private placesService: PlacesService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
-    this.places = this.placesService.places; 
+    this.placesService.fetchPlaces();
+    this.placesSubscription = this.placesService.placesChanged.subscribe(
+      (places) => {
+        this.filteredPlaces = [...places];
+        this.places = [...places];
+      }
+    );
   }
 
-  ionViewWillEnter(){
-    
-  }
-  onFilterUpdate(event : Event){
-    console.log((event as CustomEvent).detail);
+  onFilterUpdate(event: Event) {
+    console.log((event as CustomEvent).detail.value);
+    if ((event as CustomEvent).detail.value === 'all') {
+      this.filteredPlaces = this.places;
+    } else if ((event as CustomEvent).detail.value === 'bookable') {
+      this.filteredPlaces = this.places.filter((place) => {
+        return place.userId !== this.authService.userId;
+      });
+    } else {
+    }
   }
 
+  ngOnDestroy(): void {
+    this.placesSubscription.unsubscribe();
+  }
 }
