@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
+import { tap, map, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { Place } from '../shared/place.model';
 
@@ -21,6 +21,7 @@ interface PlaceData {
 export class PlacesService {
   public placesChanged = new Subject<Place[]>();
   isLoading = false;
+
   firebaseURL = 'https://hotel-booking-97098-default-rtdb.firebaseio.com/';
   private _places: Place[] = [
     // new Place(
@@ -86,6 +87,8 @@ export class PlacesService {
     availableFrom: Date,
     availableTo: Date
   ) {
+    let generateId = this.authService.userId;
+  
     let newPlace = new Place(
       'id',
       title,
@@ -94,15 +97,17 @@ export class PlacesService {
       price,
       availableFrom,
       availableTo,
-      this.authService.userId
+      generateId
     );
     this._places.push(newPlace);
     console.log(this._places);
     this.placesChanged.next(this._places);
+    let token = this.authService.userId;  
+    console.log(token);
     this.http
-      .post<{ name: string }>(this.firebaseURL + 'offered-places.json', {
+      .post<{ name: string }>(this.firebaseURL + 'offered-places.json' + '?auth=' +token, {
         ...newPlace,
-        id: null,
+        id: null
       })
       .subscribe(
         (data) => {
@@ -123,10 +128,14 @@ export class PlacesService {
     place = newPlace;
     console.log(place);
     this.placesChanged.next(this._places);
+
+    let token = this.authService.userId;  
+    console.log(token);
+
     this.http
-      .put(this.firebaseURL + 'offered-places/' + placeId + '.json', {
+      .put(this.firebaseURL + 'offered-places/' + placeId + '.json' + '?auth=' +token, {
         ...newPlace,
-        id: null,
+        id: null
       })
       .subscribe(
         (data) => {
@@ -141,8 +150,13 @@ export class PlacesService {
   }
 
   putPlaces() {
+    let token = this.authService.userId;  
+    console.log(token);
     this.http
-      .put<Place[]>(this.firebaseURL + 'offered-places.json', this._places)
+      .put<Place[]>(this.firebaseURL + 'offered-places.json' + '?auth=' +token, {
+        ...this._places,
+        auth: token,
+      })
       .subscribe(
         (data) => {
           console.log(data);
@@ -155,9 +169,16 @@ export class PlacesService {
 
   fetchPlaces() {
     this.isLoading = true;
+    let token = this.authService.userId;  
+    console.log(token);
     this.http
       .get<{ [key: string]: PlaceData }>(
-        this.firebaseURL + 'offered-places.json'
+        this.firebaseURL + 'offered-places.json',
+        {
+          params: {
+            auth: token,
+          },
+        }
       )
       .pipe(
         map((resData) => {
@@ -191,7 +212,7 @@ export class PlacesService {
         },
         (error) => {
           console.log(error);
-         alert(error.error.error);
+          alert(error.error.error);
         }
       );
   }

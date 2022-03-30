@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController } from '@ionic/angular';
+import { Storage } from '@capacitor/storage';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { AuthService } from './auth.service';
 
 @Component({
@@ -14,34 +15,97 @@ export class AuthPage implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private loadingCtrl: LoadingController
+    private loadingCtrl: LoadingController,
+    private alertCtrl: AlertController
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    // if (Storage.get({ key: 'authData' })) {
+    //   this.authLogin();
+    // }
+  }
+  authLogin() {
+    this.authService.autoLogin();
+  }
 
   toggle() {
     this.isLogin = !this.isLogin;
   }
 
-  onLogin() {
-    this.authService.login();
+  onLogin(form: NgForm) {
+    if (!form.valid) {
+      return;
+    }
+    console.log(form.value);
+    const email = form.value.email;
+    const password = form.value.password;
+    console.log(email + password);
     this.loadingCtrl
       .create({ keyboardClose: true, message: 'Loading ...' })
       .then((loadingEl) => {
         loadingEl.present();
+        console.log(email + password);
+
+        this.authService.logIn(email, password).subscribe(
+          (data) => {
+            console.log(data);
+            this.loadingCtrl.dismiss();
+            this.router.navigateByUrl('/places/tabs/discover');
+          },
+          (error) => {
+            this.loadingCtrl.dismiss();
+            console.log(error);
+            let message = error.error.error.message;
+            this.showAlert(message);
+          }
+        );
       });
-    setTimeout(() => {
-      this.loadingCtrl.dismiss();
-      this.router.navigate(['places/tabs/discover']);
-    }, 3000);
+    form.reset();
   }
 
-  onSignUp(){
+  onSignUp(form: NgForm) {
+    if (!form.valid) {
+      return;
+    }
+    console.log(form.value);
+    const email = form.value.email;
+    const password = form.value.password;
+    this.loadingCtrl
+      .create({ keyboardClose: true, message: 'Loading ...' })
+      .then((loadingEl) => {
+        loadingEl.present();
+        this.authService.signUp(email, password).subscribe(
+          (data) => {
+            console.log(data);
+            this.loadingCtrl.dismiss();
+            this.router.navigateByUrl('/places/tabs/discover');
+          },
+          (error) => {
+            this.loadingCtrl.dismiss();
+            let message = error.error.error.message;
+            console.log(error);
+
+            this.showAlert(message);
+          }
+        );
+      });
+    form.reset();
     // console.log(this.form.valid);
   }
 
-  onSubmit(form: NgForm){
-    console.log(form.valid);
-    console.log(form.value);
+  showAlert(message: string) {
+    this.alertCtrl
+      .create({
+        message: message,
+        buttons: [
+          {
+            text: 'Try again',
+            role: 'cancel',
+          },
+        ],
+      })
+      .then((alertEl) => {
+        alertEl.present();
+      });
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { LoadingController, SegmentChangeEventDetail } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { Place } from 'src/app/shared/place.model';
 import { PlacesService } from '../places.service';
@@ -31,11 +32,12 @@ export class DiscoverPage implements OnInit, OnDestroy {
 
   onFilterUpdate(event: Event) {
     console.log((event as CustomEvent).detail.value);
+    let generateId = this.authService.userId;
     if ((event as CustomEvent).detail.value === 'all') {
       this.filteredPlaces = this.places;
     } else if ((event as CustomEvent).detail.value === 'bookable') {
       this.filteredPlaces = this.places.filter((place) => {
-        return place.userId !== this.authService.userId;
+        return place.userId !== generateId;
       });
     } else {
     }

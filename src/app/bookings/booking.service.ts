@@ -7,16 +7,15 @@ import { take, map, tap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
 interface BookingData {
-  placeId: string,
-  userId: string,
-  firstName:string,
-  lastName: string,
-  placeTitle: string,
-  guestNumber: number,
-  bookedFrom: string,
-  bookedTo: string
+  placeId: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  placeTitle: string;
+  guestNumber: number;
+  bookedFrom: string;
+  bookedTo: string;
 }
-
 
 @Injectable({
   providedIn: 'root',
@@ -48,10 +47,17 @@ export class BookingService {
     dateFrom: Date,
     dateTo: Date
   ) {
+    let generateId = this.authService.userId;
+    // this.authService.userId.pipe(take(1)).subscribe((userId) => {
+    //   if(!userId){
+    //     return;
+    //   }
+    //   generateId = userId;
+    // });
     let newBooking = new Booking(
       Math.random().toString(),
       placeId,
-      this.authService.userId,
+      generateId,
       firstName,
       lastName,
       placeTitle,
@@ -62,10 +68,12 @@ export class BookingService {
     console.log(newBooking);
     this._bookings.push(newBooking);
     this.bookingChanged.next(this._bookings);
+    let token = this.authService.userId;  
+    console.log(token);
     this.http
-      .post<{ name: string }>(this.firebaseURL + 'bookings.json', {
+      .post<{ name: string }>(this.firebaseURL + 'bookings.json'+ '?auth=' +token, {
         ...newBooking,
-        id: null,
+        id: null
       })
       .subscribe((data) => {
         console.log(data);
@@ -77,19 +85,32 @@ export class BookingService {
     this._bookings = this._bookings.filter((place) => {
       return place.id !== id;
     });
+    let token = this.authService.userId;  
+    console.log(token);
     this.bookingChanged.next(this._bookings);
     this.http
-      .delete(this.firebaseURL + 'bookings/' + id + '.json')
+      .delete(this.firebaseURL + 'bookings/' + id + '.json',{
+        params: {
+          auth: token
+        }
+      })
       .subscribe((data) => {
         console.log(data);
       });
   }
 
-
-  fetchBookings(){
+  fetchBookings() {
+    let token = this.authService.userId;  
+    console.log(token);
     this.http
       .get<{ [key: string]: BookingData }>(
-        this.firebaseURL + `bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`
+        this.firebaseURL +
+          `bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`,
+          {
+            params: {
+              auth: token
+            }
+          }
       )
       .pipe(
         map((resData) => {
@@ -124,7 +145,7 @@ export class BookingService {
         },
         (error) => {
           console.log(error);
-         alert(error.error.error);
+          alert(error.error.error);
         }
       );
   }

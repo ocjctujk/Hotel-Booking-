@@ -5,7 +5,7 @@ import { AuthGuard } from './auth/auth.guard';
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'places/tab',
+    redirectTo: 'auth',
     pathMatch: 'full',
   },
   {
@@ -27,7 +27,7 @@ const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'places/tabs',
+    redirectTo: 'auth',
   },
 ];
 
